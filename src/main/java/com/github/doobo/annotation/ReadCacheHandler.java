@@ -1,7 +1,7 @@
-package com._5fu8.cache.annotation;
+package com.github.doobo.annotation;
 
-import com._5fu8.cache.service.ICacheService;
-import com._5fu8.cache.utils.ZipUtils;
+import com.github.doobo.service.ICacheService;
+import com.github.doobo.utils.ZipUtils;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -28,7 +28,7 @@ public class ReadCacheHandler extends BaseHandler{
 	/**
 	 * 用于定位寻找注解
 	 */
-	@Pointcut("@annotation(RCache)")
+	@Pointcut("@annotation(com.github.doobo.annotation.RCache)")
 	public void methodCachePointcut() {
 	}
 

@@ -1,4 +1,4 @@
-package com._5fu8.cache.annotation;
+package com.github.doobo.annotation;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -1,6 +1,6 @@
-package com._5fu8.cache.annotation;
+package com.github.doobo.annotation;
 
-import com._5fu8.cache.service.ICacheService;
+import com.github.doobo.service.ICacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -25,7 +25,7 @@ public class DeleteCacheHandler extends BaseHandler{
 	/**
      * 用于定位寻找注解
 	 */
-	@Pointcut("@annotation(DCache)")
+	@Pointcut("@annotation(com.github.doobo.annotation.DCache)")
 	public void methodCachePointcut() {
 	}
 

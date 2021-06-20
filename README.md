@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-> 基于springboot的注解式缓存,专注注解，自己实现接口ICacheService，支持任何key-value的中间件.
+> 基于springboot的注解式缓存,自定义实现接口,方便集成多种缓存(redis、memcache)而不改变原有代码逻辑,防止雪崩等.
 ## 如何添加
 ```
  <dependency>
@@ -10,11 +10,6 @@
    <artifactId>union-cache</artifactId>
    <version>1.1</version>
  </dependency>
- 
-  <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-aop</artifactId>
-  </dependency>
 ```
 
 ## 1 简单使用

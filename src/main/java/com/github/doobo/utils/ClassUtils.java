@@ -1,4 +1,4 @@
-package com._5fu8.cache.utils;
+package com.github.doobo.utils;
 
 import java.util.ArrayList;
 import java.util.List;

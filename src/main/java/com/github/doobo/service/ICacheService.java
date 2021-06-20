@@ -1,4 +1,4 @@
-package com._5fu8.cache.service;
+package com.github.doobo.service;
 
 /**
  * redis的基本操作接口
