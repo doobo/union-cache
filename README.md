@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 > 基于springboot的注解式缓存,自定义实现接口,方便集成多种缓存(redis、MemCache)而不改变原有代码逻辑,防止雪崩等,
-> 默认基于ConcurrentHashMap实现了本地缓存,通过实现接口ICacheService即可替换成redis或者MemCache缓存
+> 默认基于ConcurrentHashMap实现了本地缓存,通过继承AbstractCacheService即可替换成redis或者MemCache缓存
 
 ## 如何添加
 ```
@@ -63,46 +63,29 @@ public class IndexController {
 
 ## 2 redis接口实现
 ```
-   import com.yizheng.annotation.ICacheService;
-   import org.springframework.beans.factory.annotation.Autowired;
-   import org.springframework.data.redis.core.RedisTemplate;
-   import org.springframework.stereotype.Service;
-   
-   import java.util.concurrent.TimeUnit;
-   
-   @Service
-   public class ICacheServiceImpl implements ICacheService {
-   
-       @Autowired
-       private RedisTemplate<String, Object> redisTemplate;
-   
-       @Override
-       public void setCache(String key, Object value, int expire) {
-           redisTemplate.opsForValue().set(key, value);
-           redisTemplate.expire(key, expire, TimeUnit.SECONDS);
-       }
-   
-       @Override
-       public Object getCache(String key) {
-           return redisTemplate.opsForValue().get(key);
-       }
-   
-       @Override
-       public void clearCache(String key) {
-           redisTemplate.delete(key);
-       }
-   
-       @Override
-       public Object getSortedSetRange(String key, int start, int end) {
-           return null;
-       }
-       
-       @Override
-       public boolean enable() {
-          //是否启用缓存,false不启用,跳过缓存注解
-          return true;
-       }
-   }
+
+@Service
+public class ICacheServiceImpl extends AbstractCacheService {
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Override
+    public void setCache(String key, Object value, int expire) {
+       redisTemplate.opsForValue().set(key, value);
+       redisTemplate.expire(key, expire, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public Object getCache(String key) {
+        return redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
+    public void clearCache(String key) {
+        redisTemplate.delete(key);
+    }
+}
 ```
 
 License

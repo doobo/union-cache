@@ -12,7 +12,7 @@ public class ICacheServiceUtils {
     private static ICacheService cacheService;
 
     @Autowired(required = false)
-    public static void setCacheService(ICacheService cacheService) {
+    public void setCacheService(ICacheService cacheService) {
         ICacheServiceUtils.cacheService = cacheService;
     }
 
