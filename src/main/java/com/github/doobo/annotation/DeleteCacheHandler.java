@@ -1,13 +1,12 @@
 package com.github.doobo.annotation;
 
-import com.github.doobo.service.ICacheService;
+import com.github.doobo.service.ICacheServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -19,8 +18,6 @@ import java.lang.reflect.Method;
 @Component
 @Slf4j
 public class DeleteCacheHandler extends BaseHandler{
-	@Autowired(required = false)
-	ICacheService iCacheService;
 
 	/**
      * 用于定位寻找注解
@@ -31,7 +28,7 @@ public class DeleteCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!iCacheService.enable()){
+		if(!ICacheServiceUtils.getCacheService().enable()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;
@@ -55,7 +52,7 @@ public class DeleteCacheHandler extends BaseHandler{
 			boolean unless = super.unlessCheck(cache.unless(), redisCacheResult, methodSignature.getParameterNames(), args);
 			if(redisCacheResult != null && !unless){
 				try {
-					iCacheService.clearCache(redisKey);
+					ICacheServiceUtils.getCacheService().clearCache(redisKey);
 				} catch (Exception e) {
 					log.warn("delete value to redis error. key: " + redisKey);
 				}

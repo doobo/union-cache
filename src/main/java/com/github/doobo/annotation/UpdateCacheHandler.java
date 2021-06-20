@@ -1,13 +1,12 @@
 package com.github.doobo.annotation;
 
-import com.github.doobo.service.ICacheService;
+import com.github.doobo.service.ICacheServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -19,9 +18,7 @@ import java.lang.reflect.Method;
 @Component
 @Slf4j
 public class UpdateCacheHandler extends BaseHandler{
-
-	@Autowired(required = false)
-	ICacheService iCacheService;
+	
 
 	/**
 	 * 用于定位寻找注解
@@ -32,7 +29,7 @@ public class UpdateCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!iCacheService.enable()){
+		if(!ICacheServiceUtils.getCacheService().enable()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;
@@ -58,7 +55,7 @@ public class UpdateCacheHandler extends BaseHandler{
 			boolean unless = super.unlessCheck(cache.unless(), redisCacheResult, methodSignature.getParameterNames(), args);
 			if(redisCacheResult != null && !unless){
 				try {
-					saveCache(redisCacheResult, redisKey, rType, iCacheService, cache.expiredTime());
+					saveCache(redisCacheResult, redisKey, rType, cache.expiredTime());
 				} catch (Exception e) {
 					log.warn("update value to redis error. key: " + redisKey);
 				}

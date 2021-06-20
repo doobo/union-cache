@@ -1,6 +1,6 @@
 package com.github.doobo.annotation;
 
-import com.github.doobo.service.ICacheService;
+import com.github.doobo.service.ICacheServiceUtils;
 import com.github.doobo.utils.ClassUtils;
 import com.github.doobo.utils.ZipUtils;
 import com.alibaba.fastjson.JSON;
@@ -187,16 +187,15 @@ public class BaseHandler {
 	 * @param redisCacheResult
 	 * @param redisKey
 	 * @param rType
-	 * @param iCacheService
 	 * @param i
 	 */
-    void saveCache(Object redisCacheResult, String redisKey, String rType, ICacheService iCacheService, int i) {
+    void saveCache(Object redisCacheResult, String redisKey, String rType, int i) {
 		if(STRING.equals(rType)){
-			iCacheService.setCache(redisKey, redisCacheResult, i);
+            ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
 		}else if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
-			iCacheService.setCache(redisKey, ZipUtils.zip(JSON.toJSONString(redisCacheResult)), i);
+            ICacheServiceUtils.getCacheService().setCache(redisKey, ZipUtils.zip(JSON.toJSONString(redisCacheResult)), i);
 		}else{
-			iCacheService.setCache(redisKey, redisCacheResult, i);
+            ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
 		}
 	}
 

@@ -2,94 +2,63 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-> 基于springboot的注解式缓存,自定义实现接口,方便集成多种缓存(redis、memcache)而不改变原有代码逻辑,防止雪崩等.
+> 基于springboot的注解式缓存,自定义实现接口,方便集成多种缓存(redis、MemCache)而不改变原有代码逻辑,防止雪崩等,
+> 默认基于ConcurrentHashMap实现了本地缓存,通过实现接口ICacheService即可替换成redis或者MemCache缓存
+
 ## 如何添加
 ```
  <dependency>
    <groupId>com.github.doobo</groupId>
    <artifactId>union-cache</artifactId>
-   <version>1.1</version>
+   <version>1.2</version>
  </dependency>
 ```
 
-## 1 简单使用
+## 几种注解
+```
+//读缓存,先判断key是否有缓存,有就从缓存读取返回(不执行方法)，否则就执行一次方法，并把结果写入缓存
+@RCache(prefix = "index", key = "key", expiredTime = 10)
+@RCache(prefix = CacheConfig.USER_PREFIX, key = "#key", expiredTime = CacheConfig.USER_EXPIRED_TIME, unless = "#result == null || !#result.ok")
+
+//更新缓存,用于方法上,方法执行后，更新到缓存
+@UCache(prefix = CacheConfig.USER_PREFIX, key = "#key", expiredTime = CacheConfig.USER_EXPIRED_TIME)
+
+//删除缓存,方法执行后,删除缓存
+@DCache(prefix = CacheConfig.USER_PREFIX, key = "#key", unless = "#result == null || !#result.ok")
+```
+
+## 简单使用
 ```java
-/**
- * 用户相关操作接口
- */
-@Service
-public class UserServiceImpl implements UserService {
+@RestController
+public class IndexController {
 
-	@Autowired
-	RestTemplate restTemplate;
+    /**
+     * 每十秒钟,缓存失效,执行一次UUID
+     */
+    @GetMapping
+    @RCache(prefix = "index", key = "key", expiredTime = 10)
+    public String index(){
+        return UUID.randomUUID().toString();
+    }
 
-	/**
-	 * 用户登录、注册等接口的URL
-	 */
-	@Value("${com.userUrls}")
-	private String userUrls;
+    /**
+     * 更缓存
+     */
+    @GetMapping("update")
+    @UCache(prefix = "index", key = "key", expiredTime = 10)
+    public String update(String uuid){
+        return uuid;
+    }
 
-	@Autowired
-	UserService userService;
-
-	/**
-	 * 外网用户登录
-	 * @return
-	 */
-	@Override
-	public ResultTemplate<List<OuterToken>> outerLogin(OutUserLogin body) {
-		ResultTemplate<List<OuterToken>> loginInfo = RestTemplateUtil.postExchange(userUrls + "/outerUser/login"
-			, ContextHolderUtil.getRequest()
-			//,body
-			,new ParameterizedTypeReference<ResultTemplate<List<OuterToken>>>() {});
-		if(loginInfo != null && loginInfo.getOk() && loginInfo.getData() != null && !loginInfo.getData().isEmpty()){
-			//当前类的方法,若想缓存生效,需要注入self,代理才会执行
-			userService.addOuterLoginCache(loginInfo.getData().get(0).getAccessToken(), loginInfo);
-		}
-		return loginInfo;
-	}
-
-	/**
-	 * 设置登录缓存
-	 * @return
-	 */
-	@Override
-	@UCache(prefix = CacheConfig.USER_PREFIX, key = "#key", expiredTime = CacheConfig.USER_EXPIRED_TIME)
-	public ResultTemplate<List<OuterToken>> addOuterLoginCache(String key, ResultTemplate<List<OuterToken>> obj) {
-		//可以对obj进行相关判断,设置obj为null,则不会缓存到redis,也可以进行其它逻辑处理
-		return obj;
-	}
-
-	/**
-	 * 从redis获取用户登录信息
-	 * @return
-	 */
-	@Override
-	@RCache(prefix = CacheConfig.USER_PREFIX, key = "#key", expiredTime = CacheConfig.USER_EXPIRED_TIME, unless = "#result == null || !#result.ok")
-	public ResultTemplate<List<OuterToken>> getOuterLogin(String key) {
-		//这里可实现未获取到用户信息时,进行的相关业务处理
-		//如果缓存不存在，返回null或者unless为true不进行缓存,否则会存返回值哦
-		return ResultUtils.fail("登录信息已失效",401);
-	}
-
-	/**
-	 * 删除用户登录信息
-	 * @return
-	 */
-	@Override
-	@DCache(prefix = CacheConfig.USER_PREFIX, key = "#key", unless = "#result == null || !#result.ok")
-	public ResultTemplate delOuterLogin(String key) {
-		//调用用户中心接口,注销登录信息
-		ResultTemplate<List<OuterToken>> rs = userService.getOuterLogin(key);
-		if(rs == null || !rs.getOk()){
-			//当前登录信息已失效
-			return ResultUtils.fail("当前登录信息已经失效", 401);
-		}
-		//返回null不删除,其它则删除
-		return ResultUtils.success(true);
-	}
+    /**
+     * 删除缓存
+     */
+    @GetMapping("delete")
+    @DCache(prefix = "index", key = "key")
+    public Boolean delete(String key){
+        return Boolean.TRUE;
+    }
 }
-
 ```
 
 ## 2 redis接口实现
