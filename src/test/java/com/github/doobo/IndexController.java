@@ -6,6 +6,8 @@ import com.github.doobo.annotation.UCache;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -16,8 +18,8 @@ public class IndexController {
      */
     @GetMapping
     @RCache(prefix = "index", key = "key", expiredTime = 10)
-    public String index(){
-        return UUID.randomUUID().toString();
+    public Map<String,Object> index(){
+        return Collections.singletonMap("key", UUID.randomUUID().toString());
     }
 
     /**
@@ -25,8 +27,8 @@ public class IndexController {
      */
     @GetMapping("update")
     @UCache(prefix = "index", key = "key", expiredTime = 10)
-    public String update(String uuid){
-        return uuid;
+    public Map<String,Object> update(String uuid){
+        return Collections.singletonMap("key", uuid);
     }
 
     /**
