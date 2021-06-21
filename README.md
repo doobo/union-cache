@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-> 基于springboot的注解式缓存,自定义实现接口,方便集成多种缓存(redis、MemCache)而不改变原有代码逻辑,防止雪崩等,
+> 基于springboot的注解式缓存,方便集成多种缓存(redis、MemCache)而不改变原有代码逻辑,防止雪崩等,
 > 默认基于ConcurrentHashMap实现了本地缓存,通过继承AbstractCacheService即可替换成redis或者MemCache缓存
 
 ## 如何添加
