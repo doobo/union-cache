@@ -10,7 +10,7 @@
  <dependency>
    <groupId>com.github.doobo</groupId>
    <artifactId>union-cache</artifactId>
-   <version>1.2</version>
+   <version>1.2.1</version>
  </dependency>
 ```
 
