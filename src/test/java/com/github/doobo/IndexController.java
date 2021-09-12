@@ -14,10 +14,10 @@ import java.util.UUID;
 public class IndexController {
 
     /**
-     * 每十秒钟,缓存失效,执行一次UUID
+     * 每30秒钟,缓存失效,执行一次UUID
      */
     @GetMapping
-    @RCache(prefix = "index", key = "key", expiredTime = 10)
+    @RCache(prefix = "uuid", key = "key", expiredTime = 30)
     public Map<String,Object> index(){
         return Collections.singletonMap("key", UUID.randomUUID().toString());
     }
@@ -26,7 +26,7 @@ public class IndexController {
      * 更缓存
      */
     @GetMapping("update")
-    @UCache(prefix = "index", key = "key", expiredTime = 10)
+    @UCache(prefix = "uuid", key = "#uuid", expiredTime = 10)
     public Map<String,Object> update(String uuid){
         return Collections.singletonMap("key", uuid);
     }
@@ -35,7 +35,7 @@ public class IndexController {
      * 删除缓存
      */
     @GetMapping("delete")
-    @DCache(prefix = "index", key = "key")
+    @DCache(prefix = "uuid", key = "key")
     public Boolean delete(String key){
         return Boolean.TRUE;
     }

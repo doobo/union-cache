@@ -28,7 +28,7 @@ public class DeleteCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!ICacheServiceUtils.getCacheService().enable()){
+		if(!ICacheServiceUtils.getCacheService().enableCache()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;

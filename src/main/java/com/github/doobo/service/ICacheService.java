@@ -14,11 +14,13 @@ public interface ICacheService {
 
     void clearCache(String key);
 
-    Object getSortedSetRange(String key, int start, int end);
+    /**
+     * 是否开启压缩
+     */
+    boolean enableCompress();
 
     /**
      * 是否启用缓存
-     * @return
      */
-    boolean enable();
+    boolean enableCache();
 }

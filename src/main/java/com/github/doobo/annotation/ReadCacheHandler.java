@@ -30,7 +30,7 @@ public class ReadCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!ICacheServiceUtils.getCacheService().enable()){
+		if(!ICacheServiceUtils.getCacheService().enableCache()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;
@@ -55,18 +55,19 @@ public class ReadCacheHandler extends BaseHandler{
 			try {
 				//获取缓存值,并转为相应的类型
 				Object obj = ICacheServiceUtils.getCacheService().getCache(redisKey);
-				if(obj == null){
-					//空值或者不存在,直接返回
-					redisCacheResult = obj;
-				}else if("string".equals(rType)){
+				if("string".equals(rType)){
 					redisCacheResult = obj;
 				}else if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
-					redisCacheResult = JSON.parseObject(ZipUtils.unzip(String.valueOf(obj)), getType(proceedingJoinPoint, cache));
+					if(ICacheServiceUtils.getCacheService().enableCompress()) {
+						redisCacheResult = JSON.parseObject(ZipUtils.unzip(String.valueOf(obj)), getType(proceedingJoinPoint, cache));
+					}else{
+						redisCacheResult = obj;
+					}
 				}else{
 					redisCacheResult = obj;
 				}
 			} catch (Exception e) {
-				log.warn("obtain value from redis error. key:",redisKey);
+				log.warn("obtain value from redis error. key:{}",redisKey);
 			}
 			if(redisCacheResult != null){
 				return redisCacheResult;
@@ -78,7 +79,7 @@ public class ReadCacheHandler extends BaseHandler{
 				try {
 					saveCache(redisCacheResult, redisKey, rType, cache.expiredTime());
 				} catch (Exception e) {
-					log.warn("set value to redis error. key: " + redisKey);
+					log.warn("set value to redis error. key: {}", redisKey);
 				}
 			}
 		} catch (Exception e) {

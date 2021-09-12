@@ -16,31 +16,7 @@ import java.util.concurrent.DelayQueue;
 @Slf4j
 @Component
 public class InMemoryCacheWithDelayQueue implements ICache {
-
-    /**
-     * 默认过期时间：1分钟
-     */
-    public static final Integer ONE_MINUTE = 1000 * 60;
-    /**
-     * 默认过期时间：5分钟
-     */
-    public static final Integer FIVE_MINUTE = InMemoryCacheWithDelayQueue.ONE_MINUTE * 5;
-    /**
-     * 默认过期时间：15分钟
-     */
-    public static final Integer FIFTEEN_MINUTE = InMemoryCacheWithDelayQueue.ONE_MINUTE * 15;
-    /**
-     * 默认过期时间：30分钟
-     */
-    public static final Integer HALF_AN_HOUR = InMemoryCacheWithDelayQueue.ONE_MINUTE * 30;
-    /**
-     * 默认过期时间：45分钟
-     */
-    public static final Integer HALF_AN_HOUR_AND_FIFTEEN_MINUTE = InMemoryCacheWithDelayQueue.ONE_MINUTE * 45;
-    /**
-     * 默认过期时间：60分钟
-     */
-    public static final Integer AN_HOUR = InMemoryCacheWithDelayQueue.ONE_MINUTE * 60;
+    
     /**
      * ConcurrentHashMap是Java中的一个线程安全且高效的HashMap实现，解决涉及高并发的map结构。
      * SoftReference<Object>作为映射值，因为软引用可以保证在抛出OutOfMemory之前，如果缺少内存，将删除引用的对象。

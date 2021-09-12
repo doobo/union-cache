@@ -1,5 +1,6 @@
 package com.github.doobo.annotation;
 
+import com.github.doobo.service.ICacheService;
 import com.github.doobo.service.ICacheServiceUtils;
 import com.github.doobo.utils.ClassUtils;
 import com.github.doobo.utils.ZipUtils;
@@ -26,42 +27,40 @@ public class BaseHandler {
 
     /**
      * 转换成缓存基础对象
-     * @return
      */
     CacheSpELVO covertRCacheVO(String prefix, String key, String[] pNames, Object[] arg) {
         CacheSpELVO cacheVO = new CacheSpELVO();
         //基础信息配置
         boolean isSpEl = true;
         if(key != null && !key.contains("#")){
-            cacheVO.setKey(key);
             isSpEl = false;
         }
-		if(key != null && key.isEmpty()){
-			isSpEl = false;
+		if(key != null && !key.isEmpty()){
+            //处理key表达式
+            String rk = handleSpEL(key, pNames, arg, cacheVO, isSpEl);
+            if(rk != null){
+                cacheVO.setKey(rk);
+            }else{
+                cacheVO.setKey(key);
+            }
 		}
-        //处理key表达式
-        handleSpEL(key, pNames, arg, cacheVO, isSpEl);
-        isSpEl = true;
-        if(prefix != null && !prefix.contains("#")){
-            cacheVO.setPrefix(prefix);
-            isSpEl = false;
-        }
-		if(prefix != null && prefix.isEmpty()){
-			isSpEl = false;
+        isSpEl = prefix == null || prefix.contains("#");
+		if(prefix != null && !prefix.isEmpty()){
+            //处理key表达式
+            String pk = handleSpEL(prefix, pNames, arg, cacheVO, isSpEl);
+            if(pk != null){
+                cacheVO.setPrefix(pk);
+            }else{
+                cacheVO.setPrefix(prefix);
+            }
 		}
-        handleSpEL(prefix, pNames, arg, cacheVO, isSpEl);
         return cacheVO;
     }
 
     /**
      * 处理sqEL语法
-     * @param key
-     * @param pNames
-     * @param arg
-     * @param cacheVO
-     * @param isSpEl
      */
-    private void handleSpEL(String key, String[] pNames, Object[] arg, CacheSpELVO cacheVO, boolean isSpEl) {
+    private String handleSpEL(String key, String[] pNames, Object[] arg, CacheSpELVO cacheVO, boolean isSpEl) {
         if(isSpEl){
             //如果参数异常,不处理key
             if(pNames == null || arg == null || pNames.length > arg.length){
@@ -72,49 +71,37 @@ public class BaseHandler {
                     context.setVariable(pNames[i], arg[i]);
                 }
                 ExpressionParser parser = new SpelExpressionParser();
-                String str = parser.parseExpression(key).getValue(context, String.class);
-                cacheVO.setKey(str);
+                return parser.parseExpression(key).getValue(context, String.class);
             }
         }
+        return null;
     }
 
     /**
      * 是否缓存值判断,true不缓存
-     * @param unless
-     * @param result
-     * @param pNames
-     * @param arg
-     * @return
      */
     boolean unlessCheck(String unless, Object result, String[] pNames, Object[] arg){
-        if(unless == null){
+        if(unless == null || unless.isEmpty()){
             return false;
         }
-        if(!unless.contains("#") && !unless.isEmpty()){
+        if(!unless.contains("#")){
 			return "true".equals(unless);
         }
-        if(unless.isEmpty()){
-        	return false;
-		}
         if(pNames == null || arg == null || pNames.length > arg.length){
             return false;
-        }else{
-            StandardEvaluationContext context = new StandardEvaluationContext();
-            for(int i = 0; i < pNames.length; i++){
-                context.setVariable(pNames[i], arg[i]);
-            }
-            context.setVariable("result", result);
-            ExpressionParser parser = new SpelExpressionParser();
-            Boolean is = parser.parseExpression(unless).getValue(context, Boolean.class);
-            return is;
         }
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        for(int i = 0; i < pNames.length; i++){
+            context.setVariable(pNames[i], arg[i]);
+        }
+        context.setVariable("result", result);
+        ExpressionParser parser = new SpelExpressionParser();
+        Boolean value = parser.parseExpression(unless).getValue(context, Boolean.class);
+        return value == null? Boolean.FALSE: value;
     }
 
     /**
      * 获取方法的真实返回类型
-     * @param pjp
-     * @return
-     * @throws NoSuchMethodException
      */
     Type getType(ProceedingJoinPoint pjp, RCache cache){
         //获取方法返回值类型
@@ -133,10 +120,8 @@ public class BaseHandler {
     /**
      * 基本类、String类多返回string
      * 自定义类多返回object
-     * @param returnType
-     * @return
      */
-    String getReturnType(Class returnType){
+    String getReturnType(Class<?> returnType){
         //自定义类
         //自定义类型,序列化根据
         if(!ClassUtils.isJavaClass(returnType)){
@@ -152,8 +137,8 @@ public class BaseHandler {
         }
         //list和set
         List<Class<?>> list = ClassUtils.getSuperClass(returnType);
-        if(list != null && !list.isEmpty()){
-            Class c = list.stream().filter(List.class::equals).findFirst().orElse(null);
+        if(!list.isEmpty()){
+            Class<?> c = list.stream().filter(List.class::equals).findFirst().orElse(null);
             if(c != null){
                 return "List";
             }
@@ -184,16 +169,16 @@ public class BaseHandler {
 
 	/**
 	 * 设置缓存
-	 * @param redisCacheResult
-	 * @param redisKey
-	 * @param rType
-	 * @param i
 	 */
     void saveCache(Object redisCacheResult, String redisKey, String rType, int i) {
 		if(STRING.equals(rType)){
             ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
 		}else if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
-            ICacheServiceUtils.getCacheService().setCache(redisKey, ZipUtils.zip(JSON.toJSONString(redisCacheResult)), i);
+		    if(ICacheServiceUtils.getCacheService().enableCompress()) {
+                ICacheServiceUtils.getCacheService().setCache(redisKey, ZipUtils.zip(JSON.toJSONString(redisCacheResult)), i);
+            }else{
+                ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
+            }
 		}else{
             ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
 		}

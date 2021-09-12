@@ -1,10 +1,12 @@
 package com.github.doobo.service;
 
+import java.util.concurrent.TimeUnit;
+
 public abstract class AbstractCacheService implements ICacheService{
     
     @Override
     public void setCache(String key, Object value, int expire) {
-        InMemoryCacheUtils.cache().add(key, value, expire*1000);
+        InMemoryCacheUtils.cache().add(key, value, TimeUnit.SECONDS.toMillis(expire));
     }
 
     @Override
@@ -18,12 +20,12 @@ public abstract class AbstractCacheService implements ICacheService{
     }
 
     @Override
-    public Object getSortedSetRange(String key, int start, int end) {
-        return null;
+    public boolean enableCompress() {
+        return Boolean.FALSE;
     }
 
     @Override
-    public boolean enable() {
-        return true;
+    public boolean enableCache() {
+        return Boolean.TRUE;
     }
 }
