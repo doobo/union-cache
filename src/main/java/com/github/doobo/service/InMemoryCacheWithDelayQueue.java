@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
@@ -95,6 +98,39 @@ public class InMemoryCacheWithDelayQueue implements ICache {
     @Override
     public void clear() {
         cache.clear();
+    }
+
+    /**
+     * 简单批量删除
+     */
+    @Override
+    public int batchClear(String key){
+        if(key == null){
+            return 0;
+        }
+        if(!key.endsWith("*")){
+            remove(key);
+            return 1;
+        }
+        int i = key.lastIndexOf("*");
+        if(i < 0){
+            return 0;
+        }
+        key = key.substring(0, i);
+        Enumeration<String> keys =  cache.keys();
+        List<String> ms = new ArrayList<>();
+        String item;
+        while (keys.hasMoreElements()){
+            item = keys.nextElement();
+            if(item.startsWith(key)){
+                ms.add(item);
+            }
+        }
+        if(!ms.isEmpty()){
+            ms.forEach(this::remove);
+            return ms.size();
+        }
+        return 0;
     }
 
     /**

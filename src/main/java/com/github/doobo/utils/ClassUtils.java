@@ -14,8 +14,6 @@ public class ClassUtils {
 
 	/**
      * 判断一个类型是Java本身的类型，还是用户自定义的类型
-     * @param clz
-     * @return
      */
     public static boolean isJavaClass(Class<?> clz) {
         return clz != null && clz.getClassLoader() == null;
@@ -24,8 +22,6 @@ public class ClassUtils {
     /**
      * 判断是基本类还是封装类
      * .isPrimitive()是用来判断是否是基本类型的：void.isPrimitive() //true;
-     * @param clz
-     * @return
      */
     public static boolean isWrapClass(Class clz) {
         try {

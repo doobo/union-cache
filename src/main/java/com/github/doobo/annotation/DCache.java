@@ -32,8 +32,12 @@ public @interface DCache{
     /**
      * #result == null || !#result.ok
 	 * 判断结果返回
-     * @return
      */
     String unless() default "";
+
+    /**
+     * 是否批量删除
+     */
+    boolean batchClear() default false;
 }
 

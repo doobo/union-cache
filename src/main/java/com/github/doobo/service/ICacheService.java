@@ -15,6 +15,11 @@ public interface ICacheService {
     void clearCache(String key);
 
     /**
+     * 简单批量删除
+     */
+    int batchClear(String key);
+
+    /**
      * 是否开启压缩
      */
     boolean enableCompress();

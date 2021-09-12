@@ -52,7 +52,12 @@ public class DeleteCacheHandler extends BaseHandler{
 			boolean unless = super.unlessCheck(cache.unless(), redisCacheResult, methodSignature.getParameterNames(), args);
 			if(redisCacheResult != null && !unless){
 				try {
-					ICacheServiceUtils.getCacheService().clearCache(redisKey);
+					if(cache.batchClear()){
+						int i = ICacheServiceUtils.getCacheService().batchClear(redisKey);
+						log.info("batch clear count:{}", i);
+					}else {
+						ICacheServiceUtils.getCacheService().clearCache(redisKey);
+					}
 				} catch (Exception e) {
 					log.warn("delete value to redis error. key: " + redisKey);
 				}

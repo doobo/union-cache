@@ -138,28 +138,22 @@ public class BaseHandler {
         //list和set
         List<Class<?>> list = ClassUtils.getSuperClass(returnType);
         if(!list.isEmpty()){
-            Class<?> c = list.stream().filter(List.class::equals).findFirst().orElse(null);
-            if(c != null){
+            if(list.stream().anyMatch(List.class::equals)){
                 return "List";
             }
-            c = list.stream().filter(AbstractList.class::equals).findFirst().orElse(null);
-            if(c != null){
+            if(list.stream().anyMatch(AbstractList.class::equals)){
                 return "List";
             }
-            c = list.stream().filter(Set.class::equals).findFirst().orElse(null);
-            if(c != null){
+            if(list.stream().anyMatch(Set.class::equals)){
                 return "Set";
             }
-            c = list.stream().filter(AbstractSet.class::equals).findFirst().orElse(null);
-            if(c != null){
+            if(list.stream().anyMatch(AbstractSet.class::equals)){
                 return "Set";
             }
-            c = list.stream().filter(Map.class::equals).findFirst().orElse(null);
-            if(c != null){
+            if(list.stream().anyMatch(Map.class::equals)){
                 return "Map";
             }
-            c = list.stream().filter(AbstractMap.class::equals).findFirst().orElse(null);
-            if(c != null){
+            if(list.stream().anyMatch(AbstractMap.class::equals)){
                 return "Map";
             }
         }

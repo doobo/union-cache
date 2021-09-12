@@ -20,6 +20,11 @@ public abstract class AbstractCacheService implements ICacheService{
     }
 
     @Override
+    public int batchClear(String key) {
+        return InMemoryCacheUtils.cache().batchClear(key);
+    }
+
+    @Override
     public boolean enableCompress() {
         return Boolean.FALSE;
     }

@@ -3,6 +3,7 @@ package com.github.doobo;
 import com.github.doobo.annotation.DCache;
 import com.github.doobo.annotation.RCache;
 import com.github.doobo.annotation.UCache;
+import jdk.nashorn.internal.objects.annotations.Getter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +38,15 @@ public class IndexController {
     @GetMapping("delete")
     @DCache(prefix = "uuid", key = "key")
     public Boolean delete(String key){
+        return Boolean.TRUE;
+    }
+
+    /**
+     * 批量删除
+     */
+    @GetMapping("batch")
+    @DCache(prefix = "uuid", key = "*", batchClear = true)
+    public Boolean batchClear(){
         return Boolean.TRUE;
     }
 }

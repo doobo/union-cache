@@ -25,7 +25,6 @@ public interface ICache {
      * 根据Key值获取缓存值
      *
      * @param key Key键
-     * @return
      */
     Object get(String key);
 
@@ -36,9 +35,12 @@ public interface ICache {
 
     /**
      * 缓存的大小
-     *
-     * @return
      */
     long size();
+
+    /**
+     * 简单批量删除
+     */
+    int batchClear(String key);
 
 }
