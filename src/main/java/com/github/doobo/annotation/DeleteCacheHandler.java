@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
-/**
- * @author qpc
- */
 @Aspect
 @Component
 @Slf4j
@@ -54,7 +51,7 @@ public class DeleteCacheHandler extends BaseHandler{
 				try {
 					if(cache.batchClear()){
 						int i = ICacheServiceUtils.getCacheService().batchClear(redisKey);
-						log.info("batch clear count:{}", i);
+						log.debug("batch clear count:{}", i);
 					}else {
 						ICacheServiceUtils.getCacheService().clearCache(redisKey);
 					}
@@ -63,11 +60,8 @@ public class DeleteCacheHandler extends BaseHandler{
 				}
 			}
 		} catch (Exception e) {
-			//redis出现未知异常,直接执行原有方法,不影响逻辑,有可能方法表达式、sqEL错误、参数空异常等
-			if(redisCacheResult == null){
-				redisCacheResult = proceedingJoinPoint.proceed();
-			}
 			log.error("DeleteCacheHandlerErr", e);
+			throw e;
 		}
 		return redisCacheResult;
 	}

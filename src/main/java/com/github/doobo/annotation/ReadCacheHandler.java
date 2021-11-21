@@ -13,12 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
-/**
- * @author qpc
- */
 @Aspect
-@Component
 @Slf4j
+@Component
 public class ReadCacheHandler extends BaseHandler{
 
 	/**
@@ -48,14 +45,15 @@ public class ReadCacheHandler extends BaseHandler{
 				sb.append(vo.getKey());
 			}
 			//返回结构
-			redisCacheResult = null;
 			String redisKey = sb.toString();
 			//获取returnType类型
 			String rType = getReturnType(method.getReturnType());
 			try {
 				//获取缓存值,并转为相应的类型
 				Object obj = ICacheServiceUtils.getCacheService().getCache(redisKey);
-				if("string".equals(rType)){
+				if(obj == null){
+					log.debug("Cache key:{} is null", redisKey);
+				}else if("string".equals(rType)){
 					redisCacheResult = obj;
 				}else if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
 					if(ICacheServiceUtils.getCacheService().enableCompress()) {
@@ -66,7 +64,7 @@ public class ReadCacheHandler extends BaseHandler{
 				}else{
 					redisCacheResult = obj;
 				}
-			} catch (Exception e) {
+			} catch(Exception e) {
 				log.warn("obtain value from redis error. key:{}",redisKey);
 			}
 			if(redisCacheResult != null){
@@ -83,11 +81,8 @@ public class ReadCacheHandler extends BaseHandler{
 				}
 			}
 		} catch (Exception e) {
-			//redis出现未知异常,直接执行原有方法,不影响逻辑,有可能方法表达式、sqEL错误、参数空异常等
-			if(redisCacheResult == null){
-				redisCacheResult = proceedingJoinPoint.proceed();
-			}
 			log.error("ReadCacheHandlerErr", e);
+			throw e;
 		}
 		return redisCacheResult;
 	}

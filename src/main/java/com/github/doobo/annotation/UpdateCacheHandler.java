@@ -11,15 +11,11 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
-/**
- * @author qpc
- */
 @Aspect
 @Component
 @Slf4j
 public class UpdateCacheHandler extends BaseHandler{
 	
-
 	/**
 	 * 用于定位寻找注解
 	 */
@@ -61,11 +57,8 @@ public class UpdateCacheHandler extends BaseHandler{
 				}
 			}
 		} catch (Exception e) {
-			//redis出现未知异常,直接执行原有方法,不影响逻辑,有可能方法表达式、sqEL错误、参数空异常等
-			if(redisCacheResult == null){
-				redisCacheResult = proceedingJoinPoint.proceed();
-			}
 			log.error("UpdateCacheHandlerErr", e);
+			throw e;
 		}
 		return redisCacheResult;
 	}

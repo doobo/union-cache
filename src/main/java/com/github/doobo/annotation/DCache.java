@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 
 /**
  * 删除缓存注解
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

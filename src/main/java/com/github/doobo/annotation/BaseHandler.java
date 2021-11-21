@@ -1,6 +1,5 @@
 package com.github.doobo.annotation;
 
-import com.github.doobo.service.ICacheService;
 import com.github.doobo.service.ICacheServiceUtils;
 import com.github.doobo.utils.ClassUtils;
 import com.github.doobo.utils.ZipUtils;

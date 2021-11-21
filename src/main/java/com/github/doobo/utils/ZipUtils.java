@@ -20,7 +20,6 @@ public class ZipUtils {
 	}
 
 	/**
-	 *
 	 * 使用gzip进行压缩
 	 */
 	public static String gzip(String primStr) {
@@ -30,7 +29,7 @@ public class ZipUtils {
 		try(ByteArrayOutputStream out = new ByteArrayOutputStream();
 			GZIPOutputStream gzip = new GZIPOutputStream(out);){
 			gzip.write(primStr.getBytes(StandardCharsets.UTF_8.name()));
-			String gzipStr = new sun.misc.BASE64Encoder().encode(out.toByteArray());
+			String gzipStr = Base64Utils.encrypt7BASE64(out.toByteArray());
 			return gzipStr;
 		} catch (IOException e) {
 			log.error(NAME,e);
@@ -39,13 +38,7 @@ public class ZipUtils {
 	}
 
 	/**
-	 *
-	 * <p>
-	 * Description:使用gzip进行解压缩
-	 * </p>
-	 *
-	 * @param compressedStr
-	 * @return
+	 * 使用gzip进行解压缩
 	 */
 	public static String gunZip(String compressedStr) {
 		if (compressedStr == null) {
@@ -54,10 +47,10 @@ public class ZipUtils {
 
 		ByteArrayInputStream in = null;
 		GZIPInputStream ginZip = null;
-		byte[] compressed = null;
+		byte[] compressed;
 		String decompressed = null;
 		try(ByteArrayOutputStream out = new ByteArrayOutputStream();) {
-			compressed = new sun.misc.BASE64Decoder().decodeBuffer(compressedStr);
+			compressed = Base64Utils.decrypt7BASE64(compressedStr);
 			in = new ByteArrayInputStream(compressed);
 			ginZip = new GZIPInputStream(in);
 
@@ -90,12 +83,8 @@ public class ZipUtils {
 
 	/**
 	 * 使用zip进行压缩
-	 *
-	 * @param str
-	 * 压缩前的文本
-	 * @return 返回压缩后的文本
 	 */
-	public static final String zip(String str) {
+	public static String zip(String str) {
 		if(str == null) {
 			return null;
 		}
@@ -110,7 +99,7 @@ public class ZipUtils {
 			zout.write(str.getBytes(StandardCharsets.UTF_8.name()));
 			zout.closeEntry();
 			compressed = out.toByteArray();
-			compressedStr = new sun.misc.BASE64Encoder().encodeBuffer(compressed);
+			compressedStr = Base64Utils.encrypt7BASE64(compressed);
 		} catch (IOException e) {
 			log.error(NAME,e);
 		} finally {
@@ -134,10 +123,8 @@ public class ZipUtils {
 
 	/**
 	 * 使用zip进行解压缩
-	 * 压缩后的文本
-	 * @return 解压后的字符串
 	 */
-	public static final String unzip(String compressedStr) {
+	public static String unzip(String compressedStr) {
 		if (compressedStr == null) {
 			return null;
 		}
@@ -146,7 +133,7 @@ public class ZipUtils {
 		ZipInputStream zin = null;
 		String decompressed = null;
 		try {
-			byte[] compressed = new sun.misc.BASE64Decoder().decodeBuffer(compressedStr);
+			byte[] compressed = Base64Utils.decrypt7BASE64(compressedStr);
 			out = new ByteArrayOutputStream();
 			in = new ByteArrayInputStream(compressed);
 			zin = new ZipInputStream(in);
@@ -156,7 +143,7 @@ public class ZipUtils {
 			while ((offset = zin.read(buffer)) != -1) {
 				out.write(buffer, 0, offset);
 			}
-			decompressed = new String(out.toByteArray(),StandardCharsets.UTF_8.name());
+			decompressed = new String(out.toByteArray(), StandardCharsets.UTF_8.name());
 		} catch (IOException e) {
 			log.error(NAME,e);
 		} finally {

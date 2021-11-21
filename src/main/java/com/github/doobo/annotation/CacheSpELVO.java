@@ -6,8 +6,6 @@ import lombok.experimental.Accessors;
 
 /**
  * 缓存注解SpEl解析结果
- *
- * @author qpc
  */
 @Data
 @Accessors(chain = true)

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,5 +49,14 @@ public class IndexController {
     @DCache(prefix = "uuid", key = "*", batchClear = true)
     public Boolean batchClear(){
         return Boolean.TRUE;
+    }
+
+    /**
+     * 每30秒钟,缓存失效,执行一次UUID
+     */
+    @GetMapping("list")
+    @RCache(prefix = "list", key = "key", expiredTime = 30)
+    public List<String> list(){
+        return Collections.singletonList(UUID.randomUUID().toString());
     }
 }

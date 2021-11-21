@@ -25,6 +25,7 @@ public class InMemoryCacheWithDelayQueue implements ICache {
      * SoftReference<Object>作为映射值，因为软引用可以保证在抛出OutOfMemory之前，如果缺少内存，将删除引用的对象。
      */
     private final ConcurrentHashMap<String, SoftReference<Object>> cache = new ConcurrentHashMap<>();
+    
     /**
      * 延迟队列
      */
@@ -39,7 +40,7 @@ public class InMemoryCacheWithDelayQueue implements ICache {
                 try {
                     DelayedCacheObject delayedCacheObject = cleaningUpQueue.take();
                     cache.remove(delayedCacheObject.getKey(), delayedCacheObject.getReference());
-                    log.info("缓存Key -> " + delayedCacheObject.getKey() + "，SoftReference<Object> -> " + delayedCacheObject.getReference() + "失效");
+                    log.debug("缓存Key:{},SoftReference<Object>:{},失效", delayedCacheObject.getKey(), delayedCacheObject.getReference());
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -51,7 +52,6 @@ public class InMemoryCacheWithDelayQueue implements ICache {
 
     /**
      * 添加缓存
-     *
      * @param key            Key值
      * @param value          V值
      * @param periodInMillis 过期时间（毫秒）
@@ -73,7 +73,6 @@ public class InMemoryCacheWithDelayQueue implements ICache {
 
     /**
      * 移除缓存
-     *
      * @param key Key键
      */
     @Override
@@ -83,7 +82,6 @@ public class InMemoryCacheWithDelayQueue implements ICache {
 
     /**
      * 获取缓存
-     *
      * @param key Key键
      * @return 对象
      */
@@ -135,8 +133,6 @@ public class InMemoryCacheWithDelayQueue implements ICache {
 
     /**
      * 获取缓存数量
-     *
-     * @return Long值
      */
     @Override
     public long size() {
