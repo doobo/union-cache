@@ -11,7 +11,7 @@
     <url>https://github.com/doobo/union-cache</url>
 
     <properties>
-        <spring.boot.version>2.3.10.RELEASE</spring.boot.version>
+        <spring.boot.version>2.5.12</spring.boot.version>
         <fastjson.version>1.2.78</fastjson.version>
         <lombok.version>1.18.22</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
