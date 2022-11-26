@@ -4,7 +4,7 @@
     <groupId>com.github.doobo</groupId>
     <artifactId>union-cache</artifactId>
     <packaging>jar</packaging>
-    <version>1.3-SNAPSHOT</version>
+    <version>1.3</version>
 
     <name>union-cache</name>
     <description>基于springboot的注解式缓存,方便集成多种缓存(redis、MemCache)而不改变原有代码逻辑,防止雪崩等,默认基于ConcurrentHashMap实现了本地缓存,通过继承AbstractCacheService即可替换成redis或者MemCache缓存</description>
@@ -41,7 +41,7 @@
     </licenses>
 
     <scm>
-        <tag>master</tag>
+        <tag>v1.3</tag>
         <url>https://github.com/doobo/union-cache</url>
         <connection>scm:git:git@github.com:doobo/union-cache.git</connection>
         <developerConnection>scm:git:git@github.com:doobo/union-cache.git</developerConnection>
