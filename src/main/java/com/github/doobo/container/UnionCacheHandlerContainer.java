@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * SPI获取所有注册的字段处理器
