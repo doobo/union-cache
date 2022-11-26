@@ -1,17 +1,23 @@
 package com.github.doobo.service;
 
-import org.springframework.stereotype.Component;
 
-@Component
-public class InMemoryCacheUtils {
+import java.util.Objects;
+
+/**
+ * 基础缓存初始化
+ */
+public abstract class InMemoryCacheUtils {
     
     private static InMemoryCacheWithDelayQueue INSTANCE;
-
-    public InMemoryCacheUtils(InMemoryCacheWithDelayQueue queue) {
-        InMemoryCacheUtils.INSTANCE = queue;
-    }
     
     public static InMemoryCacheWithDelayQueue cache(){
+        if(Objects.isNull(INSTANCE)){
+            synchronized (InMemoryCacheUtils.class){
+                if(Objects.isNull(INSTANCE)){
+                    INSTANCE = new InMemoryCacheWithDelayQueue();
+                }
+            }
+        }
         return INSTANCE;
     }
 }

@@ -3,14 +3,14 @@
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 > 基于springboot的注解式缓存,方便集成多种缓存(redis、MemCache)而不改变原有代码逻辑,防止雪崩等,
-> 默认基于ConcurrentHashMap实现了本地缓存,通过继承AbstractCacheService即可替换成redis或者MemCache缓存
+> 默认基于ConcurrentHashMap实现了本地缓存,通过实现ICacheService即可替换成redis或者MemCache缓存
 
 ## 如何添加
 ```
  <dependency>
    <groupId>com.github.doobo</groupId>
    <artifactId>union-cache</artifactId>
-   <version>1.2.2</version>
+   <version>1.3</version>
  </dependency>
 ```
 
@@ -70,29 +70,42 @@ public class IndexController {
 }
 ```
 
-## 2 redis接口实现
-```
-
+## 本地缓存实现
+```java
 @Service
-public class ICacheServiceImpl extends AbstractCacheService {
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+public class UnionLocalCacheService implements ICacheService{
 
     @Override
-    public void setCache(String key, Object value, int expire) {
-       redisTemplate.opsForValue().set(key, value);
-       redisTemplate.expire(key, expire, TimeUnit.SECONDS);
+    public ResultTemplate<Boolean> setCache(UnionCacheRequest request) {
+        InMemoryCacheUtils.cache().add(request.getKey(), request.getValue(), TimeUnit.SECONDS.toMillis(request.getExpire()));
+        return ResultUtils.of(true);
     }
 
     @Override
-    public Object getCache(String key) {
-        return redisTemplate.opsForValue().get(key);
+    public ResultTemplate<Object> getCache(UnionCacheRequest request) {
+        return ResultUtils.ofUnsafe(InMemoryCacheUtils.cache().get(request.getKey()));
     }
 
     @Override
-    public void clearCache(String key) {
-        redisTemplate.delete(key);
+    public ResultTemplate<Boolean> clearCache(UnionCacheRequest request) {
+        InMemoryCacheUtils.cache().remove(request.getKey());
+        return ResultUtils.of(true);
+    }
+
+    @Override
+    public ResultTemplate<Integer> batchClear(UnionCacheRequest request) {
+        int count = InMemoryCacheUtils.cache().batchClear(request.getKey());
+        return ResultUtils.of(Integer.valueOf(count));
+    }
+
+    @Override
+    public boolean enableCompress() {
+        return Boolean.FALSE;
+    }
+
+    @Override
+    public boolean enableCache() {
+        return Boolean.TRUE;
     }
 }
 ```

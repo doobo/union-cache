@@ -1,6 +1,9 @@
 package com.github.doobo.annotation;
 
 import com.github.doobo.service.ICacheServiceUtils;
+import com.github.doobo.vbo.Builder;
+import com.github.doobo.vbo.ResultTemplate;
+import com.github.doobo.vbo.UnionCacheRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -10,6 +13,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 @Aspect
 @Component
@@ -25,7 +29,7 @@ public class DeleteCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!ICacheServiceUtils.getCacheService().enableCache()){
+		if(!ICacheServiceUtils.enableCache()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;
@@ -45,22 +49,30 @@ public class DeleteCacheHandler extends BaseHandler{
 			//返回结构
 			String redisKey = sb.toString();
 			redisCacheResult = proceedingJoinPoint.proceed();
+			UnionCacheRequest request = Builder.of(UnionCacheRequest::new)
+					.with(UnionCacheRequest::setMethod, method)
+					.with(UnionCacheRequest::setDCache, cache)
+					.with(UnionCacheRequest::setKey, redisKey)
+					.build();
 			//检测是否需要缓存
 			boolean unless = super.unlessCheck(cache.unless(), redisCacheResult, methodSignature.getParameterNames(), args);
-			if(redisCacheResult != null && !unless){
+			if(!unless){
 				try {
 					if(cache.batchClear()){
-						int i = ICacheServiceUtils.getCacheService().batchClear(redisKey);
-						log.debug("batch clear count:{}", i);
+						ResultTemplate<Integer> template = ICacheServiceUtils.batchClear(request);
+						Optional.ofNullable(template).filter(c -> !c.isSuccess())
+							.ifPresent(l -> log.error("batchClearError:{}", l));
 					}else {
-						ICacheServiceUtils.getCacheService().clearCache(redisKey);
+						ResultTemplate<Boolean> template = ICacheServiceUtils.clearCache(request);
+						Optional.ofNullable(template).filter(c -> !c.isSuccess())
+								.ifPresent(l -> log.error("batchClearError:{}", l));
 					}
 				} catch (Exception e) {
-					log.warn("delete value to redis error. key: " + redisKey);
+					log.error("delete value to redis error,key:{},e", redisKey, e);
 				}
 			}
-		} catch (Exception e) {
-			log.error("DeleteCacheHandlerErr", e);
+		} catch (Throwable e) {
+			log.error("DeleteCacheHandlerErr:", e);
 			throw e;
 		}
 		return redisCacheResult;

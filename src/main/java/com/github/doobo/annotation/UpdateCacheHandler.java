@@ -1,6 +1,8 @@
 package com.github.doobo.annotation;
 
 import com.github.doobo.service.ICacheServiceUtils;
+import com.github.doobo.vbo.Builder;
+import com.github.doobo.vbo.UnionCacheRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -10,6 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 @Aspect
 @Component
@@ -25,7 +28,7 @@ public class UpdateCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!ICacheServiceUtils.getCacheService().enableCache()){
+		if(!ICacheServiceUtils.enableCache()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;
@@ -49,15 +52,22 @@ public class UpdateCacheHandler extends BaseHandler{
 			redisCacheResult = proceedingJoinPoint.proceed();
 			//检测是否需要缓存
 			boolean unless = super.unlessCheck(cache.unless(), redisCacheResult, methodSignature.getParameterNames(), args);
-			if(redisCacheResult != null && !unless){
+			if(Objects.nonNull(redisCacheResult) && !unless){
 				try {
-					saveCache(redisCacheResult, redisKey, rType, cache.expiredTime());
+					UnionCacheRequest request = Builder.of(UnionCacheRequest::new)
+							.with(UnionCacheRequest::setMethod, method)
+							.with(UnionCacheRequest::setUCache, cache)
+							.with(UnionCacheRequest::setKey, redisKey)
+							.with(UnionCacheRequest::setExpire, cache.expiredTime())
+							.with(UnionCacheRequest::setValue, redisCacheResult)
+							.build();
+					saveCache(request, cache.isBatch(), rType);
 				} catch (Exception e) {
-					log.warn("update value to redis error. key: " + redisKey);
+					log.error("update value to redis error,key:{}," ,redisKey, e);
 				}
 			}
-		} catch (Exception e) {
-			log.error("UpdateCacheHandlerErr", e);
+		} catch (Throwable e) {
+			log.error("UpdateCacheHandlerErr:", e);
 			throw e;
 		}
 		return redisCacheResult;

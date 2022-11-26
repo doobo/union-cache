@@ -5,12 +5,8 @@ import java.util.List;
 
 /**
  * 常用类工具
- * @author qpc
  */
-public class ClassUtils {
-
-	private ClassUtils() {
-	}
+public abstract class ClassUtils {
 
 	/**
      * 判断一个类型是Java本身的类型，还是用户自定义的类型

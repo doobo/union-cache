@@ -1,12 +1,9 @@
 package com.github.doobo.utils;
 
-import lombok.experimental.PackagePrivate;
-
 import java.util.Base64;
 import java.util.regex.Pattern;
 
-@PackagePrivate
-public class Base64Utils {
+public abstract class Base64Utils {
 
     /**
      * BASE64Encoder 加密

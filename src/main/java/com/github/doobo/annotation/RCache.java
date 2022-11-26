@@ -24,7 +24,6 @@ public @interface RCache{
 
     /**
      * key值拼接符号
-     * @return
      */
     String symbol() default ".";
 
@@ -36,14 +35,17 @@ public @interface RCache{
     /**
      * #result == null || !#result.ok
 	 * 判断结果返回
-     * @return
      */
     String unless() default "";
 
 	/**
 	 * 不能解析出方法返回类型时,采用指定类型
-	 * @return
 	 */
 	Class<?> cacheType() default Object.class;
+
+    /**
+     * 是否批量读取或批量写
+     */
+    boolean isBatch() default false;
 }
 

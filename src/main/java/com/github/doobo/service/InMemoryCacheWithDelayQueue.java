@@ -2,7 +2,6 @@ package com.github.doobo.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
@@ -17,7 +16,6 @@ import java.util.concurrent.DelayQueue;
  */
 @Data
 @Slf4j
-@Component
 public class InMemoryCacheWithDelayQueue implements ICache {
     
     /**
@@ -138,5 +136,4 @@ public class InMemoryCacheWithDelayQueue implements ICache {
     public long size() {
         return cache.size();
     }
-
 }

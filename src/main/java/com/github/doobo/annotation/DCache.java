@@ -24,7 +24,6 @@ public @interface DCache{
 
     /**
      * key值拼接符号
-     * @return
      */
     String symbol() default ".";
 

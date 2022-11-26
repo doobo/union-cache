@@ -4,6 +4,8 @@ import com.github.doobo.service.ICacheServiceUtils;
 import com.github.doobo.utils.ClassUtils;
 import com.github.doobo.utils.ZipUtils;
 import com.alibaba.fastjson.JSON;
+import com.github.doobo.vbo.ResultTemplate;
+import com.github.doobo.vbo.UnionCacheRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -163,18 +165,21 @@ public class BaseHandler {
 	/**
 	 * 设置缓存
 	 */
-    void saveCache(Object redisCacheResult, String redisKey, String rType, int i) {
-		if(STRING.equals(rType)){
-            ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
-		}else if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
-		    if(ICacheServiceUtils.getCacheService().enableCompress()) {
-                ICacheServiceUtils.getCacheService().setCache(redisKey, ZipUtils.zip(JSON.toJSONString(redisCacheResult)), i);
-            }else{
-                ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
+    void saveCache(UnionCacheRequest request, boolean isBatch, String rType) {
+        if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
+		    if(ICacheServiceUtils.enableCompress()) {
+                request.setValue(ZipUtils.zip(JSON.toJSONString(request.getValue())));
             }
-		}else{
-            ICacheServiceUtils.getCacheService().setCache(redisKey, redisCacheResult, i);
 		}
+        if(isBatch){
+            ResultTemplate<Integer> template = ICacheServiceUtils.batchSetCache(request);
+            Optional.of(template).filter(c -> Objects.nonNull(c.getData()) && c.getData() < 1)
+                    .ifPresent(l -> log.error("getCacheError:{}", l));
+        }else{
+            ResultTemplate<Boolean> template = ICacheServiceUtils.setCache(request);
+            Optional.ofNullable(template).filter(c -> !c.isSuccess())
+                    .ifPresent(l -> log.error("getCacheError:{}", l));
+        }
 	}
 
 }

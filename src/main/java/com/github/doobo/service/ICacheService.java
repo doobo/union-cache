@@ -1,23 +1,48 @@
 package com.github.doobo.service;
 
+import com.github.doobo.vbo.ResultTemplate;
+import com.github.doobo.vbo.UnionCacheRequest;
+
 /**
- * redis的基本操作接口
- * @author qpc
+ * 缓存服务定义
  */
 public interface ICacheService {
+
+    int DEFAULT_PHASE = 1024;
+
     /**
-    * @param expire TimeUnit.SECONDS
-    */
-    void setCache(String key, Object value, int expire);
+     * 优先级
+     */
+    default int getPhase() {
+        return DEFAULT_PHASE;
+    }
 
-    Object getCache(String key);
+    /**
+     * 判断是否匹配
+     */
+    default boolean matching(UnionCacheRequest request){
+        return true;
+    }
 
-    void clearCache(String key);
+    /**
+     * 添加缓存
+     */
+    ResultTemplate<Boolean> setCache(UnionCacheRequest request);
+
+    /**
+     * 获取缓存
+     */
+    ResultTemplate<Object> getCache(UnionCacheRequest request);
+
+    /**
+     * 删除缓存
+     */
+    ResultTemplate<Boolean> clearCache(UnionCacheRequest request);
 
     /**
      * 简单批量删除
      */
-    int batchClear(String key);
+    ResultTemplate<Integer> batchClear(UnionCacheRequest request);
 
     /**
      * 是否开启压缩

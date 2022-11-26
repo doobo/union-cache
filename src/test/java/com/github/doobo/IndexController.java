@@ -3,7 +3,7 @@ package com.github.doobo;
 import com.github.doobo.annotation.DCache;
 import com.github.doobo.annotation.RCache;
 import com.github.doobo.annotation.UCache;
-import jdk.nashorn.internal.objects.annotations.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 public class IndexController {
 
@@ -28,7 +29,7 @@ public class IndexController {
      * 更缓存
      */
     @GetMapping("update")
-    @UCache(prefix = "uuid", key = "#uuid", expiredTime = 10)
+    @UCache(prefix = "uuid", key = "key", expiredTime = 10)
     public Map<String,Object> update(String uuid){
         return Collections.singletonMap("key", uuid);
     }
@@ -58,5 +59,14 @@ public class IndexController {
     @RCache(prefix = "list", key = "key", expiredTime = 30)
     public List<String> list(){
         return Collections.singletonList(UUID.randomUUID().toString());
+    }
+
+    /**
+     * 空返回删除
+     */
+    @GetMapping("void")
+    @DCache(prefix = "uuid", key = "*", batchClear = true)
+    public void voidClear(String abc){
+        log.info("void clear cache:{}", abc);
     }
 }

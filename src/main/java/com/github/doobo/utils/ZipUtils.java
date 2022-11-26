@@ -8,16 +8,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.*;
 
-/**
- * @author qpc
- */
 @Slf4j
-public class ZipUtils {
+public abstract class ZipUtils {
 
 	private final static String NAME = "ZipUtilsError";
-
-	private ZipUtils() {
-	}
 
 	/**
 	 * 使用gzip进行压缩
@@ -29,10 +23,9 @@ public class ZipUtils {
 		try(ByteArrayOutputStream out = new ByteArrayOutputStream();
 			GZIPOutputStream gzip = new GZIPOutputStream(out);){
 			gzip.write(primStr.getBytes(StandardCharsets.UTF_8.name()));
-			String gzipStr = Base64Utils.encrypt7BASE64(out.toByteArray());
-			return gzipStr;
+			return Base64Utils.encrypt7BASE64(out.toByteArray());
 		} catch (IOException e) {
-			log.error(NAME,e);
+			log.error(NAME, e);
 		}
 		return null;
 	}

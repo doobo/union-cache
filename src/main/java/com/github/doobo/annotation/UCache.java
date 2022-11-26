@@ -39,5 +39,10 @@ public @interface UCache {
      * @return
      */
     String unless() default "";
+
+    /**
+     * 是否批量读取或批量写
+     */
+    boolean isBatch() default false;
 }
 

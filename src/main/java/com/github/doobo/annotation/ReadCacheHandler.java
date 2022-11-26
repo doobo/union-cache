@@ -3,6 +3,9 @@ package com.github.doobo.annotation;
 import com.github.doobo.service.ICacheServiceUtils;
 import com.github.doobo.utils.ZipUtils;
 import com.alibaba.fastjson.JSON;
+import com.github.doobo.vbo.Builder;
+import com.github.doobo.vbo.ResultTemplate;
+import com.github.doobo.vbo.UnionCacheRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -12,6 +15,8 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.Optional;
 
 @Aspect
 @Slf4j
@@ -27,7 +32,7 @@ public class ReadCacheHandler extends BaseHandler{
 
 	@Around("methodCachePointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
-		if(!ICacheServiceUtils.getCacheService().enableCache()){
+		if(!ICacheServiceUtils.enableCache()){
 			return proceedingJoinPoint.proceed();
 		}
 		Object redisCacheResult = null;
@@ -48,15 +53,36 @@ public class ReadCacheHandler extends BaseHandler{
 			String redisKey = sb.toString();
 			//获取returnType类型
 			String rType = getReturnType(method.getReturnType());
+			UnionCacheRequest request = Builder.of(UnionCacheRequest::new)
+					.with(UnionCacheRequest::setMethod, method)
+					.with(UnionCacheRequest::setRCache, cache)
+					.with(UnionCacheRequest::setKey, redisKey)
+					.with(UnionCacheRequest::setExpire, cache.expiredTime())
+					.build();
 			try {
 				//获取缓存值,并转为相应的类型
-				Object obj = ICacheServiceUtils.getCacheService().getCache(redisKey);
-				if(obj == null){
+				Object obj = null;
+				if(cache.isBatch()){
+					ResultTemplate<Object> template = ICacheServiceUtils.batchReadCache(request);
+					Optional.ofNullable(template).filter(c -> !c.isSuccess())
+							.ifPresent(l -> log.error("batchReadCacheError:{}", l));
+					if(Objects.nonNull(template) && template.isSuccess()) {
+						obj = template.getData();
+					}
+				}else{
+					ResultTemplate<Object> template = ICacheServiceUtils.getCache(request);
+					Optional.ofNullable(template).filter(c -> !c.isSuccess())
+							.ifPresent(l -> log.error("getCacheError:{}", l));
+					if(Objects.nonNull(template) && template.isSuccess()) {
+						obj = template.getData();
+					}
+				}
+				if(Objects.isNull(obj)){
 					log.debug("Cache key:{} is null", redisKey);
 				}else if("string".equals(rType)){
 					redisCacheResult = obj;
 				}else if("List".equals(rType) || "object".equals(rType) || "Map".equals(rType)){
-					if(ICacheServiceUtils.getCacheService().enableCompress()) {
+					if(ICacheServiceUtils.enableCompress()) {
 						redisCacheResult = JSON.parseObject(ZipUtils.unzip(String.valueOf(obj)), getType(proceedingJoinPoint, cache));
 					}else{
 						redisCacheResult = obj;
@@ -65,23 +91,24 @@ public class ReadCacheHandler extends BaseHandler{
 					redisCacheResult = obj;
 				}
 			} catch(Exception e) {
-				log.warn("obtain value from redis error. key:{}",redisKey);
+				log.warn("obtain value from redis error. key:{},", redisKey, e);
 			}
-			if(redisCacheResult != null){
+			if(Objects.nonNull(redisCacheResult)){
 				return redisCacheResult;
 			}
 			redisCacheResult = proceedingJoinPoint.proceed();
 			//检测是否需要缓存
 			boolean unless = super.unlessCheck(cache.unless(), redisCacheResult, methodSignature.getParameterNames(), args);
-			if(redisCacheResult != null && !unless){
+			if(Objects.nonNull(redisCacheResult) && !unless){
 				try {
-					saveCache(redisCacheResult, redisKey, rType, cache.expiredTime());
+					request.setValue(redisCacheResult);
+					saveCache(request, cache.isBatch(), rType);
 				} catch (Exception e) {
-					log.warn("set value to redis error. key: {}", redisKey);
+					log.error("set value to redis error. key:{},", redisKey, e);
 				}
 			}
-		} catch (Exception e) {
-			log.error("ReadCacheHandlerErr", e);
+		} catch (Throwable e) {
+			log.error("ReadCacheHandlerErr:", e);
 			throw e;
 		}
 		return redisCacheResult;
